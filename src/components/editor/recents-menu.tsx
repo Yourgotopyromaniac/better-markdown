@@ -32,7 +32,7 @@ function RecentRow({
       <button
         type="button"
         onClick={() => onOpen(file)}
-        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent"
+        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-primary/10 hover:text-primary"
       >
         <SourceIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
