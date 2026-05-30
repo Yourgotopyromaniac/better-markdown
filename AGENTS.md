@@ -22,7 +22,8 @@ going further:
 - **Markdown cheatsheet** — a searchable syntax reference page with
   live-rendered examples.
 - **Theming** — VS Code-inspired visual language with a light / dark / system
-  toggle. The editor itself uses the VS Code CodeMirror theme.
+  switch **and** six accent presets (blue/red/orange/green/purple/pink), picked
+  from a live "Color Theme" modal. The editor uses the VS Code CodeMirror theme.
 
 It is a single-page app with **no backend** and **no data fetching layer**.
 Everything (documents, recents, theme) lives in the browser.
@@ -70,8 +71,9 @@ src/
     editor/      markdown-editor (CodeMirror), editor-toolbar, editor-workspace,
                  share-dialog, recents-menu
     preview/     markdown-preview (sanitised react-markdown renderer)
-    layout/      app-shell.tsx — top bar + content region
-    theme/       theme-provider.tsx, theme-toggle.tsx
+    files/       file-actions.tsx — open/download context + global shortcuts
+    layout/      app-shell.tsx (brand + menu), app-menu.tsx (hamburger menu)
+    theme/       theme-provider.tsx, theme-palette-dialog.tsx
     ui/          shadcn/ui primitives (button, card, dialog, dropdown-menu,
                  resizable, tabs, tooltip, …)
   data/          static content (cheatsheet.ts)
@@ -121,13 +123,31 @@ entry in `routeBuilder.tsx`.
   `bg-primary`, the app-specific `chrome` surface, etc.).
   **Always style with these tokens — never hardcode hex/`neutral-*` colors.**
 - The palette is tuned to feel like VS Code (Light+ / Dark+).
-- `src/store/theme-store.ts` holds the user's `mode` (`light|dark|system`,
-  persisted) and the runtime-resolved theme. `ThemeProvider` applies the
-  `.dark` class to `<html>` and tracks OS changes in `system` mode.
-- `index.html` contains a small inline script that applies the persisted/system
-  theme **before first paint** to avoid a flash. If you rename the storage key
-  (`bmp-theme`) or change the persisted shape, update that script too.
+- `src/store/theme-store.ts` holds `mode` (`light|dark|system`), `accent` (both
+  persisted), the runtime-resolved theme, and the `paletteOpen` flag.
+  `ThemeProvider` applies the `.dark` class + `data-accent` to `<html>` and
+  tracks OS changes in `system` mode.
+- **Accents**: six presets defined purely in CSS via `[data-accent="…"]`
+  selectors (light) and `.dark[data-accent="…"]` (dark) that override
+  `--primary`/`--ring`. Because the selectors also match *descendants*, the
+  Color Theme modal's mockups (`theme-palette-dialog.tsx`) render each accent by
+  wrapping a tile in `data-accent` and using `bg-primary` — no duplicated color
+  values in JS. To add an accent: add a `[data-accent]` block in `index.css` and
+  an entry to `ACCENTS` in `theme-store.ts`.
+- `index.html` has a small inline script that applies the persisted/system theme
+  **and accent before first paint** to avoid a flash. If you rename the storage
+  key (`bmp-theme`) or change the persisted shape, update that script too.
 - Use `useThemeStore(s => s.resolved)` to pick the matching CodeMirror theme.
+
+### Menu, files & shortcuts
+
+- The header is brand + a single hamburger `AppMenu` (Links / File / Color
+  Theme). `FileActionsProvider` (`components/files/file-actions.tsx`) owns the
+  one hidden file input and exposes `openFile()` / `download()` via
+  `useFileActions()`, shared by the menu and the editor toolbar.
+- Global shortcuts (bound in the provider): **Ctrl/Cmd+O** open, **Ctrl/Cmd+S**
+  download, **Ctrl/Cmd+K then T** open Color Theme. (Plain `T` is the chord's
+  second key because the browser reserves `Ctrl+T`.)
 
 ## 6. Conventions
 

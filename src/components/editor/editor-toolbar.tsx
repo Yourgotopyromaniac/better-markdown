@@ -11,13 +11,8 @@ import {
 } from "@/components/ui/tooltip";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { RecentsMenu } from "@/components/editor/recents-menu";
+import { useFileActions } from "@/components/files/file-actions";
 import { useEditorStore } from "@/store/editor-store";
-import { useRecentsStore } from "@/store/recents-store";
-import {
-  ACCEPTED_UPLOAD_TYPES,
-  downloadMarkdown,
-  readFileAsText,
-} from "@/lib/file";
 
 function FileNameInput() {
   const fileName = useEditorStore((s) => s.fileName);
@@ -98,25 +93,8 @@ function IconAction({
 
 export function EditorToolbar() {
   const content = useEditorStore((s) => s.content);
-  const fileName = useEditorStore((s) => s.fileName);
-  const loadDocument = useEditorStore((s) => s.loadDocument);
   const clear = useEditorStore((s) => s.clear);
-  const addRecent = useRecentsStore((s) => s.addRecent);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow re-selecting the same file
-    if (!file) return;
-    try {
-      const text = await readFileAsText(file);
-      loadDocument({ content: text, fileName: file.name });
-      addRecent({ fileName: file.name, content: text, source: "upload" });
-      toast.success(`Opened ${file.name}`);
-    } catch {
-      toast.error("Couldn't read that file");
-    }
-  };
+  const { openFile, download } = useFileActions();
 
   const copyMarkdown = async () => {
     try {
@@ -127,34 +105,22 @@ export function EditorToolbar() {
     }
   };
 
-  const download = () => {
-    downloadMarkdown(fileName, content);
-    toast.success("Download started");
-  };
-
   return (
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome/50 px-2 sm:px-3">
       <FileNameInput />
-
-      <input
-        ref={fileInputRef}
-        type="file"
-        accept={ACCEPTED_UPLOAD_TYPES}
-        onChange={handleUpload}
-        className="hidden"
-      />
 
       <div className="ml-auto flex items-center gap-0.5">
         <Stats />
         <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
 
-        <IconAction
-          label="Open a Markdown file"
-          onClick={() => fileInputRef.current?.click()}
-        >
+        <IconAction label="Open a Markdown file (Ctrl+O)" onClick={openFile}>
           <FolderOpen className="size-4" />
         </IconAction>
-        <IconAction label="Download .md" onClick={download} disabled={!content}>
+        <IconAction
+          label="Download .md (Ctrl+S)"
+          onClick={download}
+          disabled={!content}
+        >
           <Download className="size-4" />
         </IconAction>
         <RecentsMenu />

@@ -10,12 +10,14 @@
     />
     <title>Better Markdown — Live Editor & Preview</title>
     <script>
-      // No-flash theme: apply the persisted/system theme before first paint.
-      // Mirrors the logic in src/store/theme-store.ts (key: "bmp-theme").
+      // No-flash theme: apply the persisted/system theme + accent before first
+      // paint. Mirrors src/store/theme-store.ts (key: "bmp-theme").
       (function () {
         try {
           var raw = localStorage.getItem("bmp-theme");
-          var mode = raw ? JSON.parse(raw).state.mode : "system";
+          var state = raw ? JSON.parse(raw).state : {};
+          var mode = state.mode || "system";
+          var accent = state.accent || "blue";
           var dark =
             mode === "dark" ||
             (mode === "system" &&
@@ -23,6 +25,7 @@
           var root = document.documentElement;
           if (dark) root.classList.add("dark");
           root.style.colorScheme = dark ? "dark" : "light";
+          root.setAttribute("data-accent", accent);
         } catch (e) {}
       })();
     </script>
