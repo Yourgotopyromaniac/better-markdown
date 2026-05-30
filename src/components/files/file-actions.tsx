@@ -15,6 +15,7 @@ import { useThemeStore } from "@/store/theme-store";
 import {
   ACCEPTED_UPLOAD_TYPES,
   downloadMarkdown,
+  isMarkdownUpload,
   readFileAsText,
 } from "@/lib/file";
 
@@ -52,6 +53,10 @@ export function FileActionsProvider({ children }: { children: ReactNode }) {
       const file = e.target.files?.[0];
       e.target.value = ""; // allow re-selecting the same file
       if (!file) return;
+      if (!isMarkdownUpload(file)) {
+        toast.error("Please choose a Markdown file (.md, .markdown, or .mdown)");
+        return;
+      }
       try {
         const text = await readFileAsText(file);
         loadDocument({ content: text, fileName: file.name });
