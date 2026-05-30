@@ -43,7 +43,7 @@ function PaneHeader({
             aria-label={
               maximized ? "Restore split view" : `Expand ${label} to full width`
             }
-            className="ml-auto flex size-6 items-center justify-center rounded text-chrome-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="ml-auto flex size-6 items-center justify-center rounded text-chrome-foreground transition-colors hover:bg-primary/10 hover:text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             {maximized ? (
               <Minimize2 className="size-3.5" />
@@ -60,10 +60,14 @@ function PaneHeader({
   );
 }
 
-function PreviewSurface() {
+function PreviewSurface({
+  scrollRef,
+}: {
+  scrollRef?: React.Ref<HTMLDivElement>;
+}) {
   const content = useEditorStore((s) => s.content);
   return (
-    <div className="min-h-0 flex-1 overflow-auto bg-background">
+    <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto bg-background">
       <div className="mx-auto max-w-3xl px-5 py-6 sm:px-8 sm:py-8">
         <MarkdownPreview content={content} />
       </div>
@@ -71,10 +75,56 @@ function PreviewSurface() {
   );
 }
 
+/**
+ * Keep two scroll containers in proportional lockstep while `enabled`. A short
+ * lock guards against the feedback loop of one programmatic scroll triggering
+ * the other's listener.
+ */
+function useSyncScroll(
+  enabled: boolean,
+  a: HTMLElement | null,
+  b: HTMLElement | null,
+) {
+  useEffect(() => {
+    if (!enabled || !a || !b) return;
+    let locked = false;
+
+    const mirror = (src: HTMLElement, dst: HTMLElement) => () => {
+      if (locked) return;
+      locked = true;
+      const srcMax = src.scrollHeight - src.clientHeight;
+      const ratio = srcMax > 0 ? src.scrollTop / srcMax : 0;
+      dst.scrollTop = ratio * (dst.scrollHeight - dst.clientHeight);
+      requestAnimationFrame(() => {
+        locked = false;
+      });
+    };
+
+    const onA = mirror(a, b);
+    const onB = mirror(b, a);
+    a.addEventListener("scroll", onA, { passive: true });
+    b.addEventListener("scroll", onB, { passive: true });
+    return () => {
+      a.removeEventListener("scroll", onA);
+      b.removeEventListener("scroll", onB);
+    };
+  }, [enabled, a, b]);
+}
+
 function DesktopSplit() {
   const [maximized, setMaximized] = useState<PaneId | null>(null);
   const editorRef = useRef<ImperativePanelHandle>(null);
   const previewRef = useRef<ImperativePanelHandle>(null);
+
+  const syncScroll = useEditorStore((s) => s.syncScroll);
+  const [editorScroller, setEditorScroller] = useState<HTMLElement | null>(
+    null,
+  );
+  const [previewScroller, setPreviewScroller] = useState<HTMLDivElement | null>(
+    null,
+  );
+  // Disable sync while one pane is maximized (the other isn't visible).
+  useSyncScroll(syncScroll && !maximized, editorScroller, previewScroller);
 
   const toggle = (id: PaneId) =>
     setMaximized((current) => (current === id ? null : id));
@@ -116,7 +166,7 @@ function DesktopSplit() {
           onToggle={() => toggle("editor")}
         />
         <div className="min-h-0 flex-1 overflow-hidden">
-          <MarkdownEditor />
+          <MarkdownEditor onScrollerChange={setEditorScroller} />
         </div>
       </ResizablePanel>
 
@@ -137,7 +187,7 @@ function DesktopSplit() {
           maximized={maximized === "preview"}
           onToggle={() => toggle("preview")}
         />
-        <PreviewSurface />
+        <PreviewSurface scrollRef={setPreviewScroller} />
       </ResizablePanel>
     </ResizablePanelGroup>
   );

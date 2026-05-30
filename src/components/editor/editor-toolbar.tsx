@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Download, Eraser, FileText, FolderOpen } from "lucide-react";
+import {
+  ArrowDownUp,
+  Copy,
+  Download,
+  Eraser,
+  FileText,
+  FolderOpen,
+} from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -13,6 +20,7 @@ import { ShareDialog } from "@/components/editor/share-dialog";
 import { RecentsMenu } from "@/components/editor/recents-menu";
 import { useFileActions } from "@/components/files/file-actions";
 import { useEditorStore } from "@/store/editor-store";
+import { cn } from "@/lib/utils";
 
 function FileNameInput() {
   const fileName = useEditorStore((s) => s.fileName);
@@ -43,7 +51,7 @@ function FileNameInput() {
         }}
         spellCheck={false}
         aria-label="Document name"
-        className="min-w-0 max-w-[10rem] truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-medium outline-none hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring sm:max-w-[16rem]"
+        className="w-40 min-w-0 truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-medium outline-none transition-colors hover:bg-primary/10 focus-visible:bg-primary/10 focus-visible:ring-2 focus-visible:ring-ring sm:w-72 lg:w-96"
       />
     </div>
   );
@@ -94,6 +102,8 @@ function IconAction({
 export function EditorToolbar() {
   const content = useEditorStore((s) => s.content);
   const clear = useEditorStore((s) => s.clear);
+  const syncScroll = useEditorStore((s) => s.syncScroll);
+  const toggleSyncScroll = useEditorStore((s) => s.toggleSyncScroll);
   const { openFile, download } = useFileActions();
 
   const copyMarkdown = async () => {
@@ -111,6 +121,30 @@ export function EditorToolbar() {
 
       <div className="ml-auto flex items-center gap-0.5">
         <Stats />
+        <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
+
+        {/* Sync scroll — only meaningful in the desktop split view. */}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={toggleSyncScroll}
+              aria-pressed={syncScroll}
+              aria-label="Sync editor and preview scrolling"
+              className={cn(
+                "hidden lg:inline-flex",
+                syncScroll &&
+                  "bg-primary/15 text-primary hover:bg-primary/20 hover:text-primary",
+              )}
+            >
+              <ArrowDownUp className="size-4" />
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>
+            {syncScroll ? "Sync scroll: on" : "Sync scroll: off"}
+          </TooltipContent>
+        </Tooltip>
         <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
 
         <IconAction label="Open a Markdown file (Ctrl+O)" onClick={openFile}>

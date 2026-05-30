@@ -54,12 +54,15 @@ interface EditorState {
   content: string;
   /** Display name for the working document. */
   fileName: string;
+  /** When true, scrolling the editor scrolls the preview in lockstep. */
+  syncScroll: boolean;
   setContent: (content: string) => void;
   setFileName: (fileName: string) => void;
   /** Load a document (from upload, share link or recents). */
   loadDocument: (doc: { content: string; fileName?: string }) => void;
   /** Empty the editor. */
   clear: () => void;
+  toggleSyncScroll: () => void;
 }
 
 export const useEditorStore = create<EditorState>()(
@@ -67,17 +70,23 @@ export const useEditorStore = create<EditorState>()(
     (set) => ({
       content: WELCOME_DOC,
       fileName: DEFAULT_FILE_NAME,
+      syncScroll: false,
       setContent: (content) => set({ content }),
       setFileName: (fileName) =>
         set({ fileName: fileName.trim() || DEFAULT_FILE_NAME }),
       loadDocument: ({ content, fileName }) =>
         set({ content, fileName: fileName?.trim() || DEFAULT_FILE_NAME }),
       clear: () => set({ content: "", fileName: DEFAULT_FILE_NAME }),
+      toggleSyncScroll: () => set((s) => ({ syncScroll: !s.syncScroll })),
     }),
     {
       name: "bmp-document",
-      // Persist the working document so a refresh never loses work.
-      partialize: (s) => ({ content: s.content, fileName: s.fileName }),
+      // Persist the working document + sync preference across refreshes.
+      partialize: (s) => ({
+        content: s.content,
+        fileName: s.fileName,
+        syncScroll: s.syncScroll,
+      }),
     },
   ),
 );
