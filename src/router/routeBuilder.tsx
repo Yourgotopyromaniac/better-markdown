@@ -5,6 +5,7 @@ import { Routes } from "./routes";
 
 const EditorPage = lazy(() => import("@/pages/editor-page"));
 const CheatsheetPage = lazy(() => import("@/pages/cheatsheet-page"));
+const AboutPage = lazy(() => import("@/pages/about-page"));
 const NotFoundPage = lazy(() => import("@/pages/not-found-page"));
 
 export interface RouteConfig {
@@ -19,5 +20,6 @@ export interface RouteConfig {
 export const RouteBuilder: RouteConfig[] = [
   { path: Routes.home, Element: EditorPage, Layout: AppShell },
   { path: Routes.cheatsheet, Element: CheatsheetPage, Layout: AppShell },
+  { path: Routes.about, Element: AboutPage, Layout: AppShell },
   { path: "*", Element: NotFoundPage, Layout: AppShell },
 ];
