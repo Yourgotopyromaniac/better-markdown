@@ -50,6 +50,7 @@ export function ShareDialog() {
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
             <Button
+              data-tour="share-link"
               variant="ghost"
               size="icon-sm"
               disabled={empty}

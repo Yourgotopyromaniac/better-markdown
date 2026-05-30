@@ -5,6 +5,7 @@ import { Routes } from "@/router/routes";
 import { AppMenu } from "@/components/layout/app-menu";
 import { FileActionsProvider } from "@/components/files/file-actions";
 import { ThemePaletteDialog } from "@/components/theme/theme-palette-dialog";
+import { GuidedTour } from "@/components/tour/guided-tour";
 
 /**
  * Top-level application chrome: a slim, VS Code-flavoured top bar with brand
@@ -17,6 +18,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         <header className="sticky top-0 z-30 flex h-14 shrink-0 items-center gap-2 border-b border-chrome-border bg-chrome/80 px-3 backdrop-blur supports-[backdrop-filter]:bg-chrome/60 sm:px-4">
           <NavLink
             to={Routes.home}
+            data-tour="app-brand"
             className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight"
           >
             <img
@@ -37,6 +39,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Color Theme modal, openable from the menu or Ctrl+K T. */}
       <ThemePaletteDialog />
+      <GuidedTour />
     </FileActionsProvider>
   );
 }

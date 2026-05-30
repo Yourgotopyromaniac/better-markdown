@@ -35,7 +35,7 @@ function FileNameInput() {
   const commit = () => setFileName(draft);
 
   return (
-    <div className="flex min-w-0 items-center gap-1.5">
+    <div data-tour="document-name" className="flex min-w-0 items-center gap-1.5">
       <FileText className="size-4 shrink-0 text-muted-foreground" />
       <input
         ref={ref}
@@ -116,10 +116,13 @@ export function EditorToolbar() {
   };
 
   return (
-    <div className="flex h-12 shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome/50 px-2 sm:px-3">
+    <div
+      data-tour="editor-toolbar"
+      className="flex h-12 shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome/50 px-2 sm:px-3"
+    >
       <FileNameInput />
 
-      <div className="ml-auto flex items-center gap-0.5">
+      <div data-tour="toolbar-actions" className="ml-auto flex items-center gap-0.5">
         <Stats />
         <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
 

@@ -10,6 +10,7 @@ import {
   Moon,
   Palette,
   PenLine,
+  Sparkles,
   Sun,
   Trash2,
 } from "lucide-react";
@@ -19,6 +20,7 @@ import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
+  DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
   DropdownMenuSeparator,
@@ -33,6 +35,7 @@ import { useFileActions } from "@/components/files/file-actions";
 import { useEditorStore } from "@/store/editor-store";
 import { useRecentsStore, type RecentFile } from "@/store/recents-store";
 import { useThemeStore, type ThemeMode } from "@/store/theme-store";
+import { useTourStore } from "@/store/tour-store";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
@@ -62,6 +65,10 @@ export function AppMenu() {
   const mode = useThemeStore((s) => s.mode);
   const setMode = useThemeStore((s) => s.setMode);
   const setPaletteOpen = useThemeStore((s) => s.setPaletteOpen);
+  const startTour = useTourStore((s) => s.start);
+  const menuOpen = useTourStore((s) => s.menuOpen);
+  const menuLocked = useTourStore((s) => s.menuLocked);
+  const setMenuOpen = useTourStore((s) => s.setMenuOpen);
 
   const openRecent = (file: RecentFile) => {
     loadDocument({ content: file.content, fileName: file.fileName });
@@ -101,116 +108,143 @@ export function AppMenu() {
     );
 
   return (
-    <DropdownMenu>
+    <DropdownMenu
+      modal={!menuLocked}
+      open={menuOpen}
+      onOpenChange={(nextOpen) => {
+        if (menuLocked && !nextOpen) return;
+        setMenuOpen(nextOpen);
+      }}
+    >
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" aria-label="Menu">
+        <Button
+          data-tour="app-menu"
+          variant="ghost"
+          size="icon"
+          aria-label="Menu"
+        >
           <Menu className="size-[1.15rem]" />
         </Button>
       </DropdownMenuTrigger>
 
-      <DropdownMenuContent align="end" className="w-60">
-        <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-          Links
-        </DropdownMenuLabel>
-        <DropdownMenuItem
-          aria-current={isEditor ? "page" : undefined}
-          onClick={() => navigate(Routes.home)}
-          className={cn(ACCENT_STATES, isEditor && ACTIVE_STATE)}
-        >
-          <PenLine className="size-4" />
-          Editor
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          aria-current={isCheatsheet ? "page" : undefined}
-          onClick={() => navigate(Routes.cheatsheet)}
-          className={cn(ACCENT_STATES, isCheatsheet && ACTIVE_STATE)}
-        >
-          <BookOpen className="size-4" />
-          Cheatsheet
-        </DropdownMenuItem>
-        <DropdownMenuItem
-          aria-current={isAbout ? "page" : undefined}
-          onClick={() => navigate(Routes.about)}
-          className={cn(ACCENT_STATES, isAbout && ACTIVE_STATE)}
-        >
-          <Info className="size-4" />
-          About
-        </DropdownMenuItem>
+      <DropdownMenuContent data-tour="app-menu-content" align="end" className="w-60">
+        <DropdownMenuGroup data-tour="menu-links">
+          <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+            Links
+          </DropdownMenuLabel>
+          <DropdownMenuItem
+            aria-current={isEditor ? "page" : undefined}
+            onClick={() => navigate(Routes.home)}
+            className={cn(ACCENT_STATES, isEditor && ACTIVE_STATE)}
+          >
+            <PenLine className="size-4" />
+            Editor
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            aria-current={isCheatsheet ? "page" : undefined}
+            onClick={() => navigate(Routes.cheatsheet)}
+            className={cn(ACCENT_STATES, isCheatsheet && ACTIVE_STATE)}
+          >
+            <BookOpen className="size-4" />
+            Cheatsheet
+          </DropdownMenuItem>
+          <DropdownMenuItem
+            aria-current={isAbout ? "page" : undefined}
+            onClick={() => navigate(Routes.about)}
+            className={cn(ACCENT_STATES, isAbout && ACTIVE_STATE)}
+          >
+            <Info className="size-4" />
+            About
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-          File
-        </DropdownMenuLabel>
-        <DropdownMenuItem onClick={openFile} className={ACCENT_STATES}>
-          <FolderOpen className="size-4" />
-          Open File…
-          <DropdownMenuShortcut>Ctrl+O</DropdownMenuShortcut>
-        </DropdownMenuItem>
+        <DropdownMenuGroup data-tour="menu-file-actions">
+          <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+            File
+          </DropdownMenuLabel>
+          <DropdownMenuItem onClick={openFile} className={ACCENT_STATES}>
+            <FolderOpen className="size-4" />
+            Open File…
+            <DropdownMenuShortcut>Ctrl+O</DropdownMenuShortcut>
+          </DropdownMenuItem>
 
-        {isDesktop ? (
+          {isDesktop ? (
+            <DropdownMenuSub>
+              <DropdownMenuSubTrigger className={SUBTRIGGER_ACCENT}>
+                <History className="size-4" />
+                Open Recent
+              </DropdownMenuSubTrigger>
+              <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
+                {recentItems}
+              </DropdownMenuSubContent>
+            </DropdownMenuSub>
+          ) : (
+            <>
+              <DropdownMenuLabel className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+                <History className="size-3.5" />
+                Recent
+              </DropdownMenuLabel>
+              <div className="max-h-56 overflow-y-auto text-xs">
+                {recentItems}
+              </div>
+            </>
+          )}
+
+          <DropdownMenuItem onClick={download} className={ACCENT_STATES}>
+            <Download className="size-4" />
+            Download…
+            <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
+
+        <DropdownMenuSeparator />
+
+        <DropdownMenuGroup data-tour="menu-preferences">
+          <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
+            Preferences
+          </DropdownMenuLabel>
           <DropdownMenuSub>
             <DropdownMenuSubTrigger className={SUBTRIGGER_ACCENT}>
-              <History className="size-4" />
-              Open Recent
+              {(() => {
+                const Icon = MODE_ICON[mode];
+                return <Icon className="size-4" />;
+              })()}
+              Appearance
             </DropdownMenuSubTrigger>
-            <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
-              {recentItems}
+            <DropdownMenuSubContent>
+              {(["light", "dark", "system"] as ThemeMode[]).map((value) => {
+                const Icon = MODE_ICON[value];
+                return (
+                  <DropdownMenuItem
+                    key={value}
+                    onClick={() => setMode(value)}
+                    aria-current={mode === value ? "true" : undefined}
+                    className={cn(ACCENT_STATES, mode === value && ACTIVE_STATE)}
+                  >
+                    <Icon className="size-4" />
+                    <span className="capitalize">{value}</span>
+                  </DropdownMenuItem>
+                );
+              })}
             </DropdownMenuSubContent>
           </DropdownMenuSub>
-        ) : (
-          <>
-            <DropdownMenuLabel className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
-              <History className="size-3.5" />
-              Recent
-            </DropdownMenuLabel>
-            <div className="max-h-56 overflow-y-auto text-xs">{recentItems}</div>
-          </>
-        )}
-
-        <DropdownMenuItem onClick={download} className={ACCENT_STATES}>
-          <Download className="size-4" />
-          Download…
-          <DropdownMenuShortcut>Ctrl+S</DropdownMenuShortcut>
-        </DropdownMenuItem>
+          <DropdownMenuItem
+            onClick={() => setPaletteOpen(true)}
+            className={ACCENT_STATES}
+          >
+            <Palette className="size-4" />
+            Color Theme…
+            <DropdownMenuShortcut>Ctrl+K T</DropdownMenuShortcut>
+          </DropdownMenuItem>
+        </DropdownMenuGroup>
 
         <DropdownMenuSeparator />
 
-        <DropdownMenuLabel className="text-xs uppercase tracking-wider text-muted-foreground">
-          Preferences
-        </DropdownMenuLabel>
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className={SUBTRIGGER_ACCENT}>
-            {(() => {
-              const Icon = MODE_ICON[mode];
-              return <Icon className="size-4" />;
-            })()}
-            Appearance
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent>
-            {(["light", "dark", "system"] as ThemeMode[]).map((value) => {
-              const Icon = MODE_ICON[value];
-              return (
-                <DropdownMenuItem
-                  key={value}
-                  onClick={() => setMode(value)}
-                  aria-current={mode === value ? "true" : undefined}
-                  className={cn(ACCENT_STATES, mode === value && ACTIVE_STATE)}
-                >
-                  <Icon className="size-4" />
-                  <span className="capitalize">{value}</span>
-                </DropdownMenuItem>
-              );
-            })}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
-        <DropdownMenuItem
-          onClick={() => setPaletteOpen(true)}
-          className={ACCENT_STATES}
-        >
-          <Palette className="size-4" />
-          Color Theme…
-          <DropdownMenuShortcut>Ctrl+K T</DropdownMenuShortcut>
+        <DropdownMenuItem onClick={startTour} className={ACCENT_STATES}>
+          <Sparkles className="size-4" />
+          Take Tour
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
