@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.png" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="A fast, elegant Markdown editor and live preview with a VS Code-inspired theme, GitHub-flavored rendering, downloads and recent files."
+    />
+    <title>Better Markdown — Live Editor & Preview</title>
+    <script>
+      // No-flash theme: apply the persisted/system theme before first paint.
+      // Mirrors the logic in src/store/theme-store.ts (key: "bmp-theme").
+      (function () {
+        try {
+          var raw = localStorage.getItem("bmp-theme");
+          var mode = raw ? JSON.parse(raw).state.mode : "system";
+          var dark =
+            mode === "dark" ||
+            (mode === "system" &&
+              window.matchMedia("(prefers-color-scheme: dark)").matches);
+          var root = document.documentElement;
+          if (dark) root.classList.add("dark");
+          root.style.colorScheme = dark ? "dark" : "light";
+        } catch (e) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

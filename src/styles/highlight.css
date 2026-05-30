@@ -1,0 +1,149 @@
+/*
+ * Syntax-highlighting theme for rehype-highlight (highlight.js token classes),
+ * tuned to VS Code "Light+" / "Dark+". Token colors are CSS variables so they
+ * switch automatically with the `.dark` class.
+ */
+
+:root {
+  --hl-base: hsl(var(--foreground));
+  --hl-comment: #008000;
+  --hl-keyword: #0000ff;
+  --hl-string: #a31515;
+  --hl-number: #098658;
+  --hl-function: #795e26;
+  --hl-title: #795e26;
+  --hl-type: #267f99;
+  --hl-variable: #001080;
+  --hl-attr: #e50000;
+  --hl-tag: #800000;
+  --hl-built-in: #267f99;
+  --hl-literal: #0000ff;
+  --hl-meta: #0000ff;
+  --hl-regexp: #811f3f;
+  --hl-deletion: #a31515;
+  --hl-addition: #098658;
+}
+
+.dark {
+  --hl-base: #d4d4d4;
+  --hl-comment: #6a9955;
+  --hl-keyword: #569cd6;
+  --hl-string: #ce9178;
+  --hl-number: #b5cea8;
+  --hl-function: #dcdcaa;
+  --hl-title: #dcdcaa;
+  --hl-type: #4ec9b0;
+  --hl-variable: #9cdcfe;
+  --hl-attr: #9cdcfe;
+  --hl-tag: #569cd6;
+  --hl-built-in: #4ec9b0;
+  --hl-literal: #569cd6;
+  --hl-meta: #569cd6;
+  --hl-regexp: #d16969;
+  --hl-deletion: #ce9178;
+  --hl-addition: #b5cea8;
+}
+
+.hljs {
+  color: var(--hl-base);
+  background: transparent;
+}
+
+.hljs-comment,
+.hljs-quote {
+  color: var(--hl-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-doctag,
+.hljs-section,
+.hljs-name {
+  color: var(--hl-keyword);
+}
+
+.hljs-string,
+.hljs-template-string,
+.hljs-char,
+.hljs-symbol,
+.hljs-bullet {
+  color: var(--hl-string);
+}
+
+.hljs-number {
+  color: var(--hl-number);
+}
+
+.hljs-title,
+.hljs-title.class_,
+.hljs-title.function_ {
+  color: var(--hl-title);
+}
+
+.hljs-function .hljs-title {
+  color: var(--hl-function);
+}
+
+.hljs-type,
+.hljs-class .hljs-title,
+.hljs-namespace {
+  color: var(--hl-type);
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-params,
+.hljs-property {
+  color: var(--hl-variable);
+}
+
+.hljs-attr,
+.hljs-attribute,
+.hljs-selector-attr,
+.hljs-selector-class,
+.hljs-selector-id {
+  color: var(--hl-attr);
+}
+
+.hljs-tag {
+  color: var(--hl-tag);
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: var(--hl-built-in);
+}
+
+.hljs-literal,
+.hljs-keyword.hljs-literal {
+  color: var(--hl-literal);
+}
+
+.hljs-meta {
+  color: var(--hl-meta);
+}
+
+.hljs-regexp {
+  color: var(--hl-regexp);
+}
+
+.hljs-deletion {
+  color: var(--hl-deletion);
+}
+
+.hljs-addition {
+  color: var(--hl-addition);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 600;
+}
+
+.hljs-link {
+  text-decoration: underline;
+}
