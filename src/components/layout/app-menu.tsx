@@ -4,6 +4,7 @@ import {
   Download,
   FolderOpen,
   History,
+  Info,
   Menu,
   Monitor,
   Moon,
@@ -70,6 +71,7 @@ export function AppMenu() {
   const isDesktop = useIsDesktop();
   const isEditor = pathname === Routes.home;
   const isCheatsheet = pathname === Routes.cheatsheet;
+  const isAbout = pathname === Routes.about;
 
   // Shared recents list, rendered as a side-submenu on desktop and inline on
   // mobile (a side-submenu can't fit beside the menu on a narrow screen).
@@ -84,7 +86,7 @@ export function AppMenu() {
             onClick={() => openRecent(file)}
             className={cn("truncate", ACCENT_STATES)}
           >
-            <span className="truncate">{file.fileName}</span>
+            <span className="truncate lg:text-xs text-[10px] lg:pl-0 pl-4">{file.fileName}</span>
           </DropdownMenuItem>
         ))}
         <DropdownMenuSeparator />
@@ -126,6 +128,14 @@ export function AppMenu() {
           <BookOpen className="size-4" />
           Cheatsheet
         </DropdownMenuItem>
+        <DropdownMenuItem
+          aria-current={isAbout ? "page" : undefined}
+          onClick={() => navigate(Routes.about)}
+          className={cn(ACCENT_STATES, isAbout && ACTIVE_STATE)}
+        >
+          <Info className="size-4" />
+          About
+        </DropdownMenuItem>
 
         <DropdownMenuSeparator />
 
@@ -154,7 +164,7 @@ export function AppMenu() {
               <History className="size-3.5" />
               Recent
             </DropdownMenuLabel>
-            <div className="max-h-56 overflow-y-auto">{recentItems}</div>
+            <div className="max-h-56 overflow-y-auto text-xs">{recentItems}</div>
           </>
         )}
 
