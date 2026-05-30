@@ -187,7 +187,10 @@ sanitisation on and review the schema before widening it.
    recent-files history in `localStorage` (`recents-store`, capped by count +
    total size, deduped by name) with a reopen popover (`recents-menu`). Recents
    are recorded on upload and on opening a share link.
-4. ⬜ **Cheatsheet** — expand the dataset in `src/data/cheatsheet.ts` and polish.
+4. ✅ **Cheatsheet** — comprehensive CommonMark + GFM + inline-HTML reference in
+   `src/data/cheatsheet.ts` (11 sections), searchable with live-rendered
+   examples. Only pipeline-supported syntax is included (no footnotes/emoji
+   shortcodes); inline-HTML examples are limited to sanitiser-allowed tags.
 5. ⬜ **Theming polish** — refine light/dark contrast, code theme, transitions.
 6. ⬜ **Tests** — stores (theme, document, recents), share encode/decode,
    sanitisation, components.
