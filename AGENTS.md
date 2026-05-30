@@ -12,10 +12,10 @@ going further:
 - **Editor + live preview** — split-pane, GitHub-flavored Markdown, instant
   rendering as you type.
 - **File upload / download** — open a local `.md` file into the editor; export
-  the current document back to disk. _(step 3)_
-- **Recent files** — recently opened/uploaded Markdown files are stored in
-  `localStorage` (with a capped count) and can be reopened from a recents
-  panel. _(step 3)_
+  the current document back to disk.
+- **Recent files** — uploaded files and opened share links are stored in
+  `localStorage` (capped by count and total size) and can be reopened from the
+  recents panel.
 - **Shareable links** — encode the whole document into a compressed URL
   (`lz-string`); opening the link imports it. No backend, no account. Because a
   shared link can carry untrusted HTML, the preview is **always sanitised**.
@@ -68,7 +68,7 @@ npm run test:run   # vitest run (CI / one-shot)
 src/
   components/
     editor/      markdown-editor (CodeMirror), editor-toolbar, editor-workspace,
-                 share-dialog
+                 share-dialog, recents-menu
     preview/     markdown-preview (sanitised react-markdown renderer)
     layout/      app-shell.tsx — top bar + content region
     theme/       theme-provider.tsx, theme-toggle.tsx
@@ -79,10 +79,12 @@ src/
   lib/
     utils.ts     cn() class merge helper
     share.ts     encode/decode a document into a URL (lz-string)
+    file.ts      download / read-upload helpers
+    format.ts    relative-time formatting
     errorBoundary.tsx
   pages/         route components (default-exported, lazy-loaded)
   router/        routes.ts (path constants), routeBuilder.tsx, appRouter.tsx
-  store/         zustand stores (theme-store.ts, editor-store.ts)
+  store/         zustand stores (theme-store, editor-store, recents-store)
   styles/        highlight.css — VS Code-style syntax token colors
   test/          setup.ts (vitest/jsdom globals)
   App.tsx        renders <MainRouter/>
@@ -161,12 +163,13 @@ sanitisation on and review the schema before widening it.
    workspace (resizable split / mobile tabs), toolbar (rename, copy, clear,
    stats), live sanitised preview, VS Code editor + highlight theming, and
    shareable links (`lz-string`). Cheatsheet page with search + live examples.
-3. ⬜ **Files & recents** — upload a local `.md`, download the document, and a
-   recent-files history in `localStorage` (capped) with a reopen panel.
+3. ✅ **Files & recents** — upload a local `.md`, download the document, and a
+   recent-files history in `localStorage` (`recents-store`, capped by count +
+   total size, deduped by name) with a reopen popover (`recents-menu`). Recents
+   are recorded on upload and on opening a share link.
 4. ⬜ **Cheatsheet** — expand the dataset in `src/data/cheatsheet.ts` and polish.
 5. ⬜ **Theming polish** — refine light/dark contrast, code theme, transitions.
-6. ⬜ **Tests** — stores (theme, document), share encode/decode, sanitisation,
-   components.
+6. ⬜ **Tests** — stores (theme, document, recents), share encode/decode,
+   sanitisation, components.
 
-(Sharing + always-on sanitisation were pulled forward into step 2 by request.
-Upload/download/recents remain the focus of step 3.)
+(Sharing + always-on sanitisation were pulled forward into step 2 by request.)

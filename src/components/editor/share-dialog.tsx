@@ -11,6 +11,11 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { useEditorStore } from "@/store/editor-store";
 import { buildShareUrl, MAX_SHARE_LENGTH } from "@/lib/share";
 
@@ -41,12 +46,21 @@ export function ShareDialog() {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="ghost" size="sm" disabled={empty}>
-          <Share2 className="size-4" />
-          <span className="hidden sm:inline">Share</span>
-        </Button>
-      </DialogTrigger>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DialogTrigger asChild>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              disabled={empty}
+              aria-label="Share as a link"
+            >
+              <Share2 className="size-4" />
+            </Button>
+          </DialogTrigger>
+        </TooltipTrigger>
+        <TooltipContent>Share as a link</TooltipContent>
+      </Tooltip>
       <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Share this document</DialogTitle>
