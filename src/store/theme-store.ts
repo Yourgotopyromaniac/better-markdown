@@ -12,14 +12,18 @@ export type AccentName =
   | "purple"
   | "pink";
 
-/** Selectable accent presets. Actual colors live in index.css (`[data-accent]`). */
+/**
+ * Selectable accent presets. `name` is the durable key (used for storage and
+ * the `[data-accent]` CSS in index.css); `label` is a bespoke display name
+ * evoking each shade. Colors live in index.css.
+ */
 export const ACCENTS: { name: AccentName; label: string }[] = [
-  { name: "blue", label: "Blue" },
-  { name: "red", label: "Red" },
-  { name: "orange", label: "Orange" },
-  { name: "green", label: "Green" },
-  { name: "purple", label: "Purple" },
-  { name: "pink", label: "Pink" },
+  { name: "blue", label: "Sapphire" },
+  { name: "red", label: "Ruby" },
+  { name: "orange", label: "Amber" },
+  { name: "green", label: "Emerald" },
+  { name: "purple", label: "Amethyst" },
+  { name: "pink", label: "Rose Quartz" },
 ];
 
 export const DEFAULT_ACCENT: AccentName = "blue";

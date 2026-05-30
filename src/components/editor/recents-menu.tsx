@@ -32,7 +32,7 @@ function RecentRow({
       <button
         type="button"
         onClick={() => onOpen(file)}
-        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-accent"
+        className="flex min-w-0 flex-1 items-center gap-2.5 rounded-md px-2 py-1.5 text-left transition-colors hover:bg-primary/10 hover:text-primary"
       >
         <SourceIcon className="size-4 shrink-0 text-muted-foreground" />
         <span className="min-w-0 flex-1">
@@ -90,7 +90,11 @@ export function RecentsMenu() {
         <TooltipContent>Recent files</TooltipContent>
       </Tooltip>
 
-      <PopoverContent align="end" className="w-80 p-0">
+      <PopoverContent
+        align="end"
+        collisionPadding={8}
+        className="w-[min(20rem,calc(100vw-1rem))] p-0"
+      >
         <div className="flex items-center justify-between border-b border-border px-3 py-2">
           <span className="text-sm font-semibold">Recent files</span>
           {files.length > 0 && (

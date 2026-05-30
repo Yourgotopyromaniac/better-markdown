@@ -1,6 +1,5 @@
 import type { ReactNode } from "react";
 import { NavLink } from "react-router";
-import { FileText } from "lucide-react";
 
 import { Routes } from "@/router/routes";
 import { AppMenu } from "@/components/layout/app-menu";
@@ -20,9 +19,11 @@ export function AppShell({ children }: { children: ReactNode }) {
             to={Routes.home}
             className="flex items-center gap-2 font-display text-sm font-semibold tracking-tight"
           >
-            <span className="flex size-7 items-center justify-center rounded-md bg-primary text-primary-foreground shadow-sm">
-              <FileText className="size-4" />
-            </span>
+            <img
+              src="/icon.png"
+              alt=""
+              className="size-7 shrink-0 rounded-md border-2 border-primary object-cover"
+            />
             <span>Better Markdown</span>
           </NavLink>
 
