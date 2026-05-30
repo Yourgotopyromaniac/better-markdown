@@ -46,7 +46,7 @@ Everything (documents, recents, theme) lives in the browser.
 | Icons          | `lucide-react`                                                    |
 | Toasts         | `react-hot-toast`                                                 |
 | Tests          | Vitest + Testing Library + jsdom                                  |
-| Fonts          | Inter (UI), Outfit (display) via `@fontsource-variable`           |
+| Fonts          | Inter (UI), Space Grotesk (display) via `@fontsource-variable`    |
 
 > The starter template carried a lot of unrelated dependencies (a movie app).
 > Those were removed. **Do not re-add** data-fetching/form libs (react-query,

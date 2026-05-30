@@ -60,7 +60,12 @@ export default {
       },
       fontFamily: {
         sans: ["Inter Variable", "system-ui", "sans-serif"],
-        display: ["Outfit Variable", "Inter Variable", "system-ui", "sans-serif"],
+        display: [
+          "Space Grotesk Variable",
+          "Inter Variable",
+          "system-ui",
+          "sans-serif",
+        ],
         mono: [
           "ui-monospace",
           "SFMono-Regular",

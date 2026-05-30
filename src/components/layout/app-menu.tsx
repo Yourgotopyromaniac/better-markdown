@@ -32,6 +32,7 @@ import { useFileActions } from "@/components/files/file-actions";
 import { useEditorStore } from "@/store/editor-store";
 import { useRecentsStore, type RecentFile } from "@/store/recents-store";
 import { useThemeStore, type ThemeMode } from "@/store/theme-store";
+import { useIsDesktop } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
 const MODE_ICON: Record<ThemeMode, typeof Sun> = {
@@ -66,8 +67,36 @@ export function AppMenu() {
     toast.success(`Opened ${file.fileName}`);
   };
 
+  const isDesktop = useIsDesktop();
   const isEditor = pathname === Routes.home;
   const isCheatsheet = pathname === Routes.cheatsheet;
+
+  // Shared recents list, rendered as a side-submenu on desktop and inline on
+  // mobile (a side-submenu can't fit beside the menu on a narrow screen).
+  const recentItems =
+    recents.length === 0 ? (
+      <DropdownMenuItem disabled>No recent files</DropdownMenuItem>
+    ) : (
+      <>
+        {recents.map((file) => (
+          <DropdownMenuItem
+            key={file.id}
+            onClick={() => openRecent(file)}
+            className={cn("truncate", ACCENT_STATES)}
+          >
+            <span className="truncate">{file.fileName}</span>
+          </DropdownMenuItem>
+        ))}
+        <DropdownMenuSeparator />
+        <DropdownMenuItem
+          onClick={clearRecents}
+          className={cn("text-muted-foreground", ACCENT_STATES)}
+        >
+          <Trash2 className="size-4" />
+          Clear Recently Opened
+        </DropdownMenuItem>
+      </>
+    );
 
   return (
     <DropdownMenu>
@@ -109,37 +138,25 @@ export function AppMenu() {
           <DropdownMenuShortcut>Ctrl+O</DropdownMenuShortcut>
         </DropdownMenuItem>
 
-        <DropdownMenuSub>
-          <DropdownMenuSubTrigger className={SUBTRIGGER_ACCENT}>
-            <History className="size-4" />
-            Open Recent
-          </DropdownMenuSubTrigger>
-          <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
-            {recents.length === 0 ? (
-              <DropdownMenuItem disabled>No recent files</DropdownMenuItem>
-            ) : (
-              <>
-                {recents.map((file) => (
-                  <DropdownMenuItem
-                    key={file.id}
-                    onClick={() => openRecent(file)}
-                    className={cn("truncate", ACCENT_STATES)}
-                  >
-                    <span className="truncate">{file.fileName}</span>
-                  </DropdownMenuItem>
-                ))}
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={clearRecents}
-                  className={cn("text-muted-foreground", ACCENT_STATES)}
-                >
-                  <Trash2 className="size-4" />
-                  Clear Recently Opened
-                </DropdownMenuItem>
-              </>
-            )}
-          </DropdownMenuSubContent>
-        </DropdownMenuSub>
+        {isDesktop ? (
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger className={SUBTRIGGER_ACCENT}>
+              <History className="size-4" />
+              Open Recent
+            </DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="max-h-80 w-64 overflow-y-auto">
+              {recentItems}
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+        ) : (
+          <>
+            <DropdownMenuLabel className="flex items-center gap-1.5 text-xs uppercase tracking-wider text-muted-foreground">
+              <History className="size-3.5" />
+              Recent
+            </DropdownMenuLabel>
+            <div className="max-h-56 overflow-y-auto">{recentItems}</div>
+          </>
+        )}
 
         <DropdownMenuItem onClick={download} className={ACCENT_STATES}>
           <Download className="size-4" />
