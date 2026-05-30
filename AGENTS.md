@@ -192,7 +192,9 @@ sanitisation on and review the schema before widening it.
    examples. Only pipeline-supported syntax is included (no footnotes/emoji
    shortcodes); inline-HTML examples are limited to sanitiser-allowed tags.
 5. ⬜ **Theming polish** — refine light/dark contrast, code theme, transitions.
-6. ⬜ **Tests** — stores (theme, document, recents), share encode/decode,
-   sanitisation, components.
+6. ✅ **Tests** — Vitest suite (35 tests): `lib/share` (round-trip/garbage/url),
+   `lib/file`, `lib/format`, the `recents`/`editor`/`theme` stores, and the
+   `MarkdownPreview` renderer (GFM, XSS sanitisation, safe links, highlight).
+   Run with `npm run test:run`.
 
 (Sharing + always-on sanitisation were pulled forward into step 2 by request.)
