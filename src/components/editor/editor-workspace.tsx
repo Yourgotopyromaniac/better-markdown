@@ -1,28 +1,61 @@
-import { useState, type ReactNode } from "react";
-import { Eye, PenLine } from "lucide-react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
+import { Eye, Maximize2, Minimize2, PenLine } from "lucide-react";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 
 import {
   ResizableHandle,
   ResizablePanel,
   ResizablePanelGroup,
 } from "@/components/ui/resizable";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { MarkdownEditor } from "@/components/editor/markdown-editor";
 import { MarkdownPreview } from "@/components/preview/markdown-preview";
 import { useEditorStore } from "@/store/editor-store";
 import { useIsDesktop } from "@/hooks/use-media-query";
 import { cn } from "@/lib/utils";
 
+type PaneId = "editor" | "preview";
+
 function PaneHeader({
   icon,
   label,
+  maximized,
+  onToggle,
 }: {
   icon: ReactNode;
   label: string;
+  maximized: boolean;
+  onToggle: () => void;
 }) {
   return (
     <div className="flex h-9 shrink-0 items-center gap-2 border-b border-chrome-border bg-chrome px-3 text-[0.7rem] font-semibold uppercase tracking-wider text-chrome-foreground">
       {icon}
       {label}
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            onClick={onToggle}
+            aria-label={
+              maximized ? "Restore split view" : `Expand ${label} to full width`
+            }
+            className="ml-auto flex size-6 items-center justify-center rounded text-chrome-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {maximized ? (
+              <Minimize2 className="size-3.5" />
+            ) : (
+              <Maximize2 className="size-3.5" />
+            )}
+          </button>
+        </TooltipTrigger>
+        <TooltipContent>
+          {maximized ? "Restore split" : "Expand to full width"}
+        </TooltipContent>
+      </Tooltip>
     </div>
   );
 }
@@ -39,17 +72,71 @@ function PreviewSurface() {
 }
 
 function DesktopSplit() {
+  const [maximized, setMaximized] = useState<PaneId | null>(null);
+  const editorRef = useRef<ImperativePanelHandle>(null);
+  const previewRef = useRef<ImperativePanelHandle>(null);
+
+  const toggle = (id: PaneId) =>
+    setMaximized((current) => (current === id ? null : id));
+
+  // Collapse the opposite panel to zero width instead of unmounting either one,
+  // so the editor keeps its cursor / selection / undo history across toggles.
+  useEffect(() => {
+    const editor = editorRef.current;
+    const preview = previewRef.current;
+    if (!editor || !preview) return;
+
+    if (maximized === "editor") {
+      preview.collapse();
+      editor.expand();
+    } else if (maximized === "preview") {
+      editor.collapse();
+      preview.expand();
+    } else {
+      editor.expand();
+      preview.expand();
+    }
+  }, [maximized]);
+
   return (
     <ResizablePanelGroup direction="horizontal" autoSaveId="bmp-split">
-      <ResizablePanel defaultSize={50} minSize={25} className="flex flex-col">
-        <PaneHeader icon={<PenLine className="size-3.5" />} label="Editor" />
+      <ResizablePanel
+        ref={editorRef}
+        order={1}
+        collapsible
+        collapsedSize={0}
+        defaultSize={50}
+        minSize={25}
+        className="flex flex-col overflow-hidden"
+      >
+        <PaneHeader
+          icon={<PenLine className="size-3.5" />}
+          label="Editor"
+          maximized={maximized === "editor"}
+          onToggle={() => toggle("editor")}
+        />
         <div className="min-h-0 flex-1 overflow-hidden">
           <MarkdownEditor />
         </div>
       </ResizablePanel>
-      <ResizableHandle withHandle />
-      <ResizablePanel defaultSize={50} minSize={25} className="flex flex-col">
-        <PaneHeader icon={<Eye className="size-3.5" />} label="Preview" />
+
+      <ResizableHandle withHandle className={cn(maximized && "hidden")} />
+
+      <ResizablePanel
+        ref={previewRef}
+        order={2}
+        collapsible
+        collapsedSize={0}
+        defaultSize={50}
+        minSize={25}
+        className="flex flex-col overflow-hidden"
+      >
+        <PaneHeader
+          icon={<Eye className="size-3.5" />}
+          label="Preview"
+          maximized={maximized === "preview"}
+          onToggle={() => toggle("preview")}
+        />
         <PreviewSurface />
       </ResizablePanel>
     </ResizablePanelGroup>

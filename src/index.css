@@ -87,6 +87,13 @@
    * Selectors target both the root element and any descendant carrying
    * `data-accent` (so the Color Theme modal's mockups render their own accent).
    */
+  /* `blue` matches the :root/.dark default, but needs an explicit rule so a
+     nested mockup tile sets its own --primary instead of inheriting the
+     active accent from <html>. */
+  [data-accent="blue"] {
+    --primary: 206 100% 40%;
+    --ring: 206 100% 40%;
+  }
   [data-accent="red"] {
     --primary: 0 72% 48%;
     --ring: 0 72% 48%;
@@ -108,6 +115,11 @@
     --ring: 330 76% 46%;
   }
 
+  .dark[data-accent="blue"],
+  .dark [data-accent="blue"] {
+    --primary: 206 100% 50%;
+    --ring: 206 100% 50%;
+  }
   .dark[data-accent="red"],
   .dark [data-accent="red"] {
     --primary: 0 84% 63%;
