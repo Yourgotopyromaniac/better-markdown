@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Copy, Eraser, FileText } from "lucide-react";
+import { Copy, Download, Eraser, FileText, FolderOpen } from "lucide-react";
 import toast from "react-hot-toast";
 
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ShareDialog } from "@/components/editor/share-dialog";
+import { RecentsMenu } from "@/components/editor/recents-menu";
 import { useEditorStore } from "@/store/editor-store";
+import { useRecentsStore } from "@/store/recents-store";
+import {
+  ACCEPTED_UPLOAD_TYPES,
+  downloadMarkdown,
+  readFileAsText,
+} from "@/lib/file";
 
 function FileNameInput() {
   const fileName = useEditorStore((s) => s.fileName);
@@ -19,7 +26,7 @@ function FileNameInput() {
   const ref = useRef<HTMLInputElement>(null);
 
   // Keep the local draft in sync when the document changes externally
-  // (share import, recents, etc.).
+  // (share import, recents, upload, etc.).
   useEffect(() => setDraft(fileName), [fileName]);
 
   const commit = () => setFileName(draft);
@@ -41,7 +48,7 @@ function FileNameInput() {
         }}
         spellCheck={false}
         aria-label="Document name"
-        className="min-w-0 max-w-[16rem] truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-medium outline-none hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+        className="min-w-0 max-w-[10rem] truncate rounded-md bg-transparent px-1.5 py-1 text-sm font-medium outline-none hover:bg-accent/60 focus-visible:bg-accent focus-visible:ring-2 focus-visible:ring-ring sm:max-w-[16rem]"
       />
     </div>
   );
@@ -53,16 +60,63 @@ function Stats() {
   const chars = content.length;
 
   return (
-    <div className="hidden items-center gap-3 text-xs tabular-nums text-muted-foreground md:flex">
+    <div className="hidden items-center gap-3 text-xs tabular-nums text-muted-foreground lg:flex">
       <span>{words.toLocaleString()} words</span>
       <span>{chars.toLocaleString()} chars</span>
     </div>
   );
 }
 
+function IconAction({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon-sm"
+          onClick={onClick}
+          disabled={disabled}
+          aria-label={label}
+        >
+          {children}
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>{label}</TooltipContent>
+    </Tooltip>
+  );
+}
+
 export function EditorToolbar() {
   const content = useEditorStore((s) => s.content);
+  const fileName = useEditorStore((s) => s.fileName);
+  const loadDocument = useEditorStore((s) => s.loadDocument);
   const clear = useEditorStore((s) => s.clear);
+  const addRecent = useRecentsStore((s) => s.addRecent);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = ""; // allow re-selecting the same file
+    if (!file) return;
+    try {
+      const text = await readFileAsText(file);
+      loadDocument({ content: text, fileName: file.name });
+      addRecent({ fileName: file.name, content: text, source: "upload" });
+      toast.success(`Opened ${file.name}`);
+    } catch {
+      toast.error("Couldn't read that file");
+    }
+  };
 
   const copyMarkdown = async () => {
     try {
@@ -73,48 +127,58 @@ export function EditorToolbar() {
     }
   };
 
+  const download = () => {
+    downloadMarkdown(fileName, content);
+    toast.success("Download started");
+  };
+
   return (
     <div className="flex h-12 shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome/50 px-2 sm:px-3">
       <FileNameInput />
 
-      <div className="ml-auto flex items-center gap-1">
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept={ACCEPTED_UPLOAD_TYPES}
+        onChange={handleUpload}
+        className="hidden"
+      />
+
+      <div className="ml-auto flex items-center gap-0.5">
         <Stats />
-        <Separator orientation="vertical" className="mx-1 hidden h-5 md:block" />
+        <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
 
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={copyMarkdown}
-              disabled={!content}
-            >
-              <Copy className="size-4" />
-              <span className="hidden sm:inline">Copy</span>
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Copy raw Markdown</TooltipContent>
-        </Tooltip>
+        <IconAction
+          label="Open a Markdown file"
+          onClick={() => fileInputRef.current?.click()}
+        >
+          <FolderOpen className="size-4" />
+        </IconAction>
+        <IconAction label="Download .md" onClick={download} disabled={!content}>
+          <Download className="size-4" />
+        </IconAction>
+        <RecentsMenu />
 
+        <Separator orientation="vertical" className="mx-1 h-5" />
+
+        <IconAction
+          label="Copy raw Markdown"
+          onClick={copyMarkdown}
+          disabled={!content}
+        >
+          <Copy className="size-4" />
+        </IconAction>
         <ShareDialog />
-
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => {
-                clear();
-                toast.success("Editor cleared");
-              }}
-              disabled={!content}
-              aria-label="Clear editor"
-            >
-              <Eraser className="size-4" />
-            </Button>
-          </TooltipTrigger>
-          <TooltipContent>Clear the editor</TooltipContent>
-        </Tooltip>
+        <IconAction
+          label="Clear the editor"
+          onClick={() => {
+            clear();
+            toast.success("Editor cleared");
+          }}
+          disabled={!content}
+        >
+          <Eraser className="size-4" />
+        </IconAction>
       </div>
     </div>
   );

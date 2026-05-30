@@ -4,6 +4,7 @@ import toast from "react-hot-toast";
 
 import { decodeShare, SHARE_PARAM } from "@/lib/share";
 import { useEditorStore } from "@/store/editor-store";
+import { useRecentsStore } from "@/store/recents-store";
 
 /**
  * If the URL carries a shared document (`?d=…`), decode it into the editor and
@@ -12,6 +13,7 @@ import { useEditorStore } from "@/store/editor-store";
 export function useShareLoader() {
   const [params, setParams] = useSearchParams();
   const loadDocument = useEditorStore((s) => s.loadDocument);
+  const addRecent = useRecentsStore((s) => s.addRecent);
   const handled = useRef(false);
 
   useEffect(() => {
@@ -26,10 +28,12 @@ export function useShareLoader() {
     setParams(next, { replace: true });
 
     if (doc) {
-      loadDocument({ content: doc.content, fileName: doc.fileName });
+      const fileName = doc.fileName || "shared.md";
+      loadDocument({ content: doc.content, fileName });
+      addRecent({ fileName, content: doc.content, source: "shared" });
       toast.success("Opened shared document");
     } else {
       toast.error("This share link is invalid or corrupted");
     }
-  }, [params, setParams, loadDocument]);
+  }, [params, setParams, loadDocument, addRecent]);
 }
