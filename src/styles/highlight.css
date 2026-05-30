@@ -44,6 +44,23 @@
   --hl-addition: #b5cea8;
 }
 
+/*
+ * Code-block surface. Typography's defaults assume a dark `pre` background with
+ * pale text, which is illegible on our light code surface. These real (non
+ * `:where`) selectors override the base color/background; per-token `.hljs-*`
+ * rules are applied directly on inner spans, so they still take precedence.
+ */
+.prose pre {
+  color: hsl(var(--foreground));
+  background-color: hsl(var(--md-code-bg));
+}
+
+.prose pre code {
+  color: inherit;
+  background: transparent;
+  padding: 0;
+}
+
 .hljs {
   color: var(--hl-base);
   background: transparent;

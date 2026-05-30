@@ -13,8 +13,13 @@ const extensions = [
   EditorView.lineWrapping,
 ];
 
+interface MarkdownEditorProps {
+  /** Receives the CodeMirror scroll element when the editor mounts. */
+  onScrollerChange?: (el: HTMLElement | null) => void;
+}
+
 /** CodeMirror-backed Markdown source editor, themed to match the app. */
-export function MarkdownEditor() {
+export function MarkdownEditor({ onScrollerChange }: MarkdownEditorProps = {}) {
   const content = useEditorStore((s) => s.content);
   const setContent = useEditorStore((s) => s.setContent);
   const resolved = useThemeStore((s) => s.resolved);
@@ -23,6 +28,7 @@ export function MarkdownEditor() {
     <CodeMirror
       value={content}
       onChange={setContent}
+      onCreateEditor={(view) => onScrollerChange?.(view.scrollDOM)}
       theme={resolved === "dark" ? vscodeDark : vscodeLight}
       extensions={extensions}
       height="100%"

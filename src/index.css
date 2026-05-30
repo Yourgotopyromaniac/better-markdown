@@ -80,6 +80,71 @@
 
     --md-code-bg: 0 0% 11%; /* slightly deeper than the editor surface */
   }
+
+  /*
+   * Accent presets. `blue` is the default baked into :root/.dark above. Each
+   * preset overrides --primary/--ring for light, with a brighter dark variant.
+   * Selectors target both the root element and any descendant carrying
+   * `data-accent` (so the Color Theme modal's mockups render their own accent).
+   */
+  /* `blue` matches the :root/.dark default, but needs an explicit rule so a
+     nested mockup tile sets its own --primary instead of inheriting the
+     active accent from <html>. */
+  [data-accent="blue"] {
+    --primary: 206 100% 40%;
+    --ring: 206 100% 40%;
+  }
+  [data-accent="red"] {
+    --primary: 0 72% 48%;
+    --ring: 0 72% 48%;
+  }
+  [data-accent="orange"] {
+    --primary: 24 92% 44%;
+    --ring: 24 92% 44%;
+  }
+  [data-accent="green"] {
+    --primary: 142 71% 35%;
+    --ring: 142 71% 35%;
+  }
+  [data-accent="purple"] {
+    --primary: 262 72% 53%;
+    --ring: 262 72% 53%;
+  }
+  [data-accent="pink"] {
+    --primary: 330 76% 46%;
+    --ring: 330 76% 46%;
+  }
+
+  .dark[data-accent="blue"],
+  .dark [data-accent="blue"] {
+    --primary: 206 100% 50%;
+    --ring: 206 100% 50%;
+  }
+  .dark[data-accent="red"],
+  .dark [data-accent="red"] {
+    --primary: 0 84% 63%;
+    --ring: 0 84% 63%;
+  }
+  .dark[data-accent="orange"],
+  .dark [data-accent="orange"] {
+    --primary: 27 96% 56%;
+    --ring: 27 96% 56%;
+  }
+  .dark[data-accent="green"],
+  .dark [data-accent="green"] {
+    --primary: 142 64% 48%;
+    --ring: 142 64% 48%;
+  }
+  .dark[data-accent="purple"],
+  .dark [data-accent="purple"] {
+    --primary: 263 86% 70%;
+    --ring: 263 86% 70%;
+  }
+  .dark[data-accent="pink"],
+  .dark [data-accent="pink"] {
+    --primary: 330 86% 64%;
+    --ring: 330 86% 64%;
+  }
 }
 
 @layer base {

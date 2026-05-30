@@ -15,7 +15,13 @@ function systemTheme(): ResolvedTheme {
  */
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const mode = useThemeStore((s) => s.mode);
+  const accent = useThemeStore((s) => s.accent);
   const setResolved = useThemeStore((s) => s._setResolved);
+
+  // Accent → data attribute; CSS in index.css maps it to --primary/--ring.
+  useEffect(() => {
+    document.documentElement.setAttribute("data-accent", accent);
+  }, [accent]);
 
   useEffect(() => {
     const root = document.documentElement;
