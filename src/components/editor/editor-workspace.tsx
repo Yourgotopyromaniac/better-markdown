@@ -67,7 +67,11 @@ function PreviewSurface({
 }) {
   const content = useEditorStore((s) => s.content);
   return (
-    <div ref={scrollRef} className="min-h-0 flex-1 overflow-auto bg-background">
+    <div
+      ref={scrollRef}
+      data-tour="markdown-preview"
+      className="min-h-0 flex-1 overflow-auto bg-background"
+    >
       <div className="mx-auto max-w-3xl px-5 py-6 sm:px-8 sm:py-8">
         <MarkdownPreview content={content} />
       </div>
@@ -149,7 +153,11 @@ function DesktopSplit() {
   }, [maximized]);
 
   return (
-    <ResizablePanelGroup direction="horizontal" autoSaveId="bmp-split">
+    <ResizablePanelGroup
+      data-tour="workspace"
+      direction="horizontal"
+      autoSaveId="bmp-split"
+    >
       <ResizablePanel
         ref={editorRef}
         order={1}
@@ -205,7 +213,10 @@ function MobilePanes() {
 
   return (
     <div className="flex h-full flex-col">
-      <div className="flex shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome p-1.5">
+      <div
+        data-tour="mobile-tabs"
+        className="flex shrink-0 items-center gap-1 border-b border-chrome-border bg-chrome p-1.5"
+      >
         {tabs.map((t) => (
           <button
             key={t.value}

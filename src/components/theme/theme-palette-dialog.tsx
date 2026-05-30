@@ -13,6 +13,7 @@ import {
   type AccentName,
   type ThemeMode,
 } from "@/store/theme-store";
+import { useTourStore } from "@/store/tour-store";
 import { cn } from "@/lib/utils";
 
 const MODES: { mode: ThemeMode; label: string; Icon: typeof Sun }[] = [
@@ -77,10 +78,21 @@ export function ThemePaletteDialog() {
   const setMode = useThemeStore((s) => s.setMode);
   const accent = useThemeStore((s) => s.accent);
   const setAccent = useThemeStore((s) => s.setAccent);
+  const paletteLocked = useTourStore((s) => s.paletteLocked);
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogContent className="max-w-lg">
+    <Dialog
+      modal={!paletteLocked}
+      open={open}
+      onOpenChange={(nextOpen) => {
+        if (paletteLocked && !nextOpen) return;
+        setOpen(nextOpen);
+      }}
+    >
+      <DialogContent
+        data-tour="theme-palette"
+        className="max-w-lg"
+      >
         <DialogHeader>
           <DialogTitle>Color Theme</DialogTitle>
           <DialogDescription>

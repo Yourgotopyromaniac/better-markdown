@@ -75,7 +75,12 @@ export function RecentsMenu() {
       <Tooltip>
         <TooltipTrigger asChild>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="Recent files">
+            <Button
+              data-tour="recent-files"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Recent files"
+            >
               <span className="relative">
                 <History className="size-4" />
                 {files.length > 0 && (

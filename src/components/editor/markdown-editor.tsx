@@ -25,24 +25,26 @@ export function MarkdownEditor({ onScrollerChange }: MarkdownEditorProps = {}) {
   const resolved = useThemeStore((s) => s.resolved);
 
   return (
-    <CodeMirror
-      value={content}
-      onChange={setContent}
-      onCreateEditor={(view) => onScrollerChange?.(view.scrollDOM)}
-      theme={resolved === "dark" ? vscodeDark : vscodeLight}
-      extensions={extensions}
-      height="100%"
-      className="h-full text-[0.95rem]"
-      placeholder="Start writing Markdown…"
-      aria-label="Markdown source editor"
-      basicSetup={{
-        lineNumbers: true,
-        foldGutter: false,
-        highlightActiveLine: true,
-        highlightActiveLineGutter: true,
-        autocompletion: false,
-        bracketMatching: true,
-      }}
-    />
+    <div data-tour="markdown-editor" className="h-full">
+      <CodeMirror
+        value={content}
+        onChange={setContent}
+        onCreateEditor={(view) => onScrollerChange?.(view.scrollDOM)}
+        theme={resolved === "dark" ? vscodeDark : vscodeLight}
+        extensions={extensions}
+        height="100%"
+        className="h-full text-[0.95rem]"
+        placeholder="Start writing Markdown…"
+        aria-label="Markdown source editor"
+        basicSetup={{
+          lineNumbers: true,
+          foldGutter: false,
+          highlightActiveLine: true,
+          highlightActiveLineGutter: true,
+          autocompletion: false,
+          bracketMatching: true,
+        }}
+      />
+    </div>
   );
 }
