@@ -1,5 +1,11 @@
 import { useState } from "react";
-import { ArrowUp, FileText, Sparkles, Square } from "lucide-react";
+import {
+  ArrowUp,
+  FileText,
+  Sparkles,
+  Square,
+  TriangleAlert,
+} from "lucide-react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type UIMessage } from "ai";
 
@@ -36,10 +42,24 @@ function messageText(message: UIMessage): string {
   return text;
 }
 
+function friendlyError(error: Error): string {
+  const detail = error.message ?? "";
+  if (/failed to fetch|network|load failed/i.test(detail)) {
+    return "Couldn't reach the server. Check your connection and try again.";
+  }
+  if (/rate.?limit|quota|429|resource_?exhausted/i.test(detail)) {
+    return "Rate limit reached — wait a moment and try again.";
+  }
+  return detail && detail.length < 200
+    ? detail
+    : "Something went wrong. Please try again.";
+}
+
 export function ChatSheet() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
-  const { messages, sendMessage, status, error, stop } = useChat({ transport });
+  const { messages, sendMessage, status, error, stop, regenerate, clearError } =
+    useChat({ transport });
   const hasContent = useEditorStore((s) => s.content.trim().length > 0);
 
   const isBusy = status === "submitted" || status === "streaming";
@@ -132,8 +152,30 @@ export function ChatSheet() {
           )}
 
           {error && (
-            <div className="rounded-md bg-destructive/10 px-3 py-2 text-xs text-destructive">
-              Something went wrong. Please try again.
+            <div className="flex flex-col gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2.5 text-xs text-destructive">
+              <div className="flex items-start gap-2">
+                <TriangleAlert className="mt-px size-4 shrink-0" />
+                <span>{friendlyError(error)}</span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => regenerate()}
+                  disabled={isBusy}
+                >
+                  Retry
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  onClick={clearError}
+                >
+                  Dismiss
+                </Button>
+              </div>
             </div>
           )}
         </div>

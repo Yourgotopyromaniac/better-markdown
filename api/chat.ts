@@ -47,9 +47,15 @@ export async function POST(req: Request): Promise<Response> {
     });
 
     return result.toUIMessageStreamResponse({
+      // Log the real error server-side, but return a safe, mapped message to the
+      // client — no raw provider details leak to the UI.
       onError: (error) => {
         console.error("[api/chat] stream error:", error);
-        return error instanceof Error ? error.message : String(error);
+        const detail = error instanceof Error ? error.message : String(error);
+        if (/rate.?limit|quota|429|resource_?exhausted/i.test(detail)) {
+          return "Rate limit reached — wait a moment and try again.";
+        }
+        return "The AI service failed to generate a response. Please try again.";
       },
     });
   } catch (error) {
