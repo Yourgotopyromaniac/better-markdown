@@ -29,10 +29,6 @@ import { MarkdownPreview } from "@/components/preview/markdown-preview";
 import { ThinkingIndicator } from "@/components/chat/thinking-indicator";
 import { useEditorStore } from "@/store/editor-store";
 
-// Attach the *current* document to every request (typed message, Summarize, or
-// regenerate), read fresh from the store at send time — so the model always sees
-// the file as it stands right now, not a stale snapshot. /api/chat is also
-// useChat's default endpoint; we're explicit for clarity.
 const transport = new DefaultChatTransport({
   api: "/api/chat",
   prepareSendMessagesRequest: ({ messages }) => {
@@ -41,7 +37,6 @@ const transport = new DefaultChatTransport({
   },
 });
 
-/** Concatenate the text parts of a UI message into a single string. */
 function messageText(message: UIMessage): string {
   let text = "";
   for (const part of message.parts) {
@@ -50,7 +45,6 @@ function messageText(message: UIMessage): string {
   return text;
 }
 
-/** Map a chat error to a safe, user-facing message. */
 function friendlyError(error: Error): string {
   const detail = error.message ?? "";
   if (/failed to fetch|network|load failed/i.test(detail)) {
@@ -59,20 +53,16 @@ function friendlyError(error: Error): string {
   if (/rate.?limit|quota|429|resource_?exhausted/i.test(detail)) {
     return "Rate limit reached — wait a moment and try again.";
   }
-  // The server already returns user-safe text for model failures; show it when
-  // it's short and sensible, otherwise fall back to a generic line.
   return detail && detail.length < 200
     ? detail
     : "Something went wrong. Please try again.";
 }
 
-/** A rendered assistant reply with a "copy as plain text" action beneath it. */
 function AssistantMessage({ text }: { text: string }) {
   const contentRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
-    // Copy the rendered text (no Markdown symbols), not the raw source.
     const plain = contentRef.current?.textContent?.trim() ?? text;
     try {
       await navigator.clipboard.writeText(plain);
@@ -100,17 +90,17 @@ function AssistantMessage({ text }: { text: string }) {
         aria-label="Copy response as text"
         className="ml-1 inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
       >
-        {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+        {copied ? (
+          <Check className="size-3.5" />
+        ) : (
+          <Copy className="size-3.5" />
+        )}
         {copied ? "Copied" : "Copy"}
       </button>
     </div>
   );
 }
 
-/**
- * Slide-over AI chat scoped to the active Markdown file: ask questions about it
- * or summarize it. The document is sent as context with every message.
- */
 export function ChatSheet() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
@@ -123,8 +113,6 @@ export function ChatSheet() {
 
   const isBusy = status === "submitted" || status === "streaming";
 
-  // Grow the input with its content (up to a cap), so multi-line drafts are
-  // visible at a glance instead of scrolling inside a one-line box.
   useEffect(() => {
     const el = textareaRef.current;
     if (!el) return;
@@ -132,16 +120,12 @@ export function ChatSheet() {
     el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
   }, [input]);
 
-  // Keep the newest content in view as the conversation grows (including while a
-  // reply streams), unless the user has scrolled up to read earlier messages.
   useEffect(() => {
     if (!stickRef.current) return;
     const el = listRef.current;
     if (el) el.scrollTop = el.scrollHeight;
   }, [messages, status]);
 
-  // Track whether we're pinned to the bottom, so auto-scroll doesn't fight a
-  // user who has scrolled up.
   const onListScroll = () => {
     const el = listRef.current;
     if (!el) return;
@@ -191,7 +175,6 @@ export function ChatSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        {/* Message list */}
         <div
           ref={listRef}
           onScroll={onListScroll}
@@ -226,7 +209,6 @@ export function ChatSheet() {
             })
           )}
 
-          {/* Spinner + verb between send and the first streamed token. */}
           {status === "submitted" && (
             <div className="flex justify-start px-1">
               <ThinkingIndicator />
@@ -262,7 +244,6 @@ export function ChatSheet() {
           )}
         </div>
 
-        {/* Quick action + composer */}
         <div className="border-t border-chrome-border">
           <div className="px-3 pt-3">
             <Button
