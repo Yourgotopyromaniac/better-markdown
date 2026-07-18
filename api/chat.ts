@@ -17,13 +17,32 @@ export async function POST(req: Request): Promise<Response> {
   }
 
   try {
-    const { messages }: { messages: UIMessage[] } = await req.json();
+    const { messages, documentText, fileName } = (await req.json()) as {
+      messages: UIMessage[];
+      documentText?: string;
+      fileName?: string;
+    };
+
+    const hasDocument =
+      typeof documentText === "string" && documentText.trim().length > 0;
+
+    const system = hasDocument
+      ? [
+          "You are an assistant embedded in a Markdown editor - Better Markdown Preview By Awoyemi Abiola.",
+          "Answer the user's questions about their current Markdown document, and summarize it when asked.",
+          "Ground every answer in the document below. If it doesn't cover something, say so rather than inventing details.",
+          "Reply in clean, well-structured Markdown.",
+          "",
+          `Document title: ${fileName?.trim() || "untitled.md"}`,
+          "<document>",
+          documentText,
+          "</document>",
+        ].join("\n")
+      : "You are a helpful assistant embedded in a Markdown editor - Better Markdown Preview By Awoyemi Abiola. The user's document is empty right now, so tell them there's nothing to summarize yet and invite them to start writing.";
 
     const result = streamText({
       model: google("gemini-3.5-flash"),
-      system:
-        "You are a helpful assistant embedded in a Markdown editor. " +
-        "Answer clearly and concisely.",
+      system,
       messages: await convertToModelMessages(messages),
     });
 
