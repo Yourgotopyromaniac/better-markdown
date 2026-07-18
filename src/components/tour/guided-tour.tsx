@@ -88,6 +88,13 @@ const TOUR_STEPS: TourStep[] = [
     placement: "bottom",
   },
   {
+    id: "ask-ai",
+    title: "Ask AI",
+    body: "New — open the AI panel to summarize the current file or ask questions about it. Answers stream in and stay grounded in what you've written.",
+    target: "[data-tour='ask-ai']",
+    placement: "bottom",
+  },
+  {
     id: "editor",
     title: "Write Markdown",
     body: "The CodeMirror editor gives you line numbers, wrapping, and Markdown-aware highlighting while you type.",

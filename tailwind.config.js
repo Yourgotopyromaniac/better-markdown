@@ -45,8 +45,7 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
-        // App-specific chrome (editor panes, toolbars). Mapped to VS Code-like
-        // surfaces so the IDE feel survives theme switches.
+
         chrome: {
           DEFAULT: "hsl(var(--chrome))",
           foreground: "hsl(var(--chrome-foreground))",
@@ -88,11 +87,16 @@ export default {
           from: { opacity: "0" },
           to: { opacity: "1" },
         },
+        "caret-blink": {
+          "0%,70%,100%": { opacity: "1" },
+          "20%,50%": { opacity: "0" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
+        "caret-blink": "caret-blink 1.1s ease-out infinite",
       },
     },
   },

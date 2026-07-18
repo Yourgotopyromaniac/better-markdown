@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ArrowUp,
+  Check,
+  Copy,
   FileText,
   Sparkles,
   Square,
@@ -24,9 +26,13 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { MarkdownPreview } from "@/components/preview/markdown-preview";
+import { ThinkingIndicator } from "@/components/chat/thinking-indicator";
 import { useEditorStore } from "@/store/editor-store";
-import { cn } from "@/lib/utils";
 
+// Attach the *current* document to every request (typed message, Summarize, or
+// regenerate), read fresh from the store at send time — so the model always sees
+// the file as it stands right now, not a stale snapshot. /api/chat is also
+// useChat's default endpoint; we're explicit for clarity.
 const transport = new DefaultChatTransport({
   api: "/api/chat",
   prepareSendMessagesRequest: ({ messages }) => {
@@ -34,6 +40,8 @@ const transport = new DefaultChatTransport({
     return { body: { messages, documentText: content, fileName } };
   },
 });
+
+/** Concatenate the text parts of a UI message into a single string. */
 function messageText(message: UIMessage): string {
   let text = "";
   for (const part of message.parts) {
@@ -42,6 +50,7 @@ function messageText(message: UIMessage): string {
   return text;
 }
 
+/** Map a chat error to a safe, user-facing message. */
 function friendlyError(error: Error): string {
   const detail = error.message ?? "";
   if (/failed to fetch|network|load failed/i.test(detail)) {
@@ -50,29 +59,106 @@ function friendlyError(error: Error): string {
   if (/rate.?limit|quota|429|resource_?exhausted/i.test(detail)) {
     return "Rate limit reached — wait a moment and try again.";
   }
+  // The server already returns user-safe text for model failures; show it when
+  // it's short and sensible, otherwise fall back to a generic line.
   return detail && detail.length < 200
     ? detail
     : "Something went wrong. Please try again.";
 }
 
+/** A rendered assistant reply with a "copy as plain text" action beneath it. */
+function AssistantMessage({ text }: { text: string }) {
+  const contentRef = useRef<HTMLDivElement>(null);
+  const [copied, setCopied] = useState(false);
+
+  const copy = async () => {
+    // Copy the rendered text (no Markdown symbols), not the raw source.
+    const plain = contentRef.current?.textContent?.trim() ?? text;
+    try {
+      await navigator.clipboard.writeText(plain);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      // Clipboard can reject (permissions / insecure context); fail quietly.
+    }
+  };
+
+  return (
+    <div className="flex flex-col items-start gap-1">
+      <div
+        ref={contentRef}
+        className="max-w-[90%] rounded-2xl bg-muted px-4 py-3 text-sm"
+      >
+        <MarkdownPreview
+          content={text}
+          className="prose-sm max-w-none [&>:first-child]:mt-0 [&>:last-child]:mb-0"
+        />
+      </div>
+      <button
+        type="button"
+        onClick={copy}
+        aria-label="Copy response as text"
+        className="ml-1 inline-flex items-center gap-1 rounded px-1.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-primary/10 hover:text-primary"
+      >
+        {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
+        {copied ? "Copied" : "Copy"}
+      </button>
+    </div>
+  );
+}
+
+/**
+ * Slide-over AI chat scoped to the active Markdown file: ask questions about it
+ * or summarize it. The document is sent as context with every message.
+ */
 export function ChatSheet() {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const { messages, sendMessage, status, error, stop, regenerate, clearError } =
     useChat({ transport });
   const hasContent = useEditorStore((s) => s.content.trim().length > 0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+  const stickRef = useRef(true);
 
   const isBusy = status === "submitted" || status === "streaming";
+
+  // Grow the input with its content (up to a cap), so multi-line drafts are
+  // visible at a glance instead of scrolling inside a one-line box.
+  useEffect(() => {
+    const el = textareaRef.current;
+    if (!el) return;
+    el.style.height = "auto";
+    el.style.height = `${Math.min(el.scrollHeight, 160)}px`;
+  }, [input]);
+
+  // Keep the newest content in view as the conversation grows (including while a
+  // reply streams), unless the user has scrolled up to read earlier messages.
+  useEffect(() => {
+    if (!stickRef.current) return;
+    const el = listRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages, status]);
+
+  // Track whether we're pinned to the bottom, so auto-scroll doesn't fight a
+  // user who has scrolled up.
+  const onListScroll = () => {
+    const el = listRef.current;
+    if (!el) return;
+    stickRef.current = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
+  };
 
   const submit = () => {
     const text = input.trim();
     if (!text || isBusy) return;
+    stickRef.current = true; // sending: always follow the new response
     sendMessage({ text });
     setInput("");
   };
 
   const summarize = () => {
     if (isBusy || !hasContent) return;
+    stickRef.current = true;
     sendMessage({ text: "Summarize this document." });
   };
 
@@ -81,7 +167,12 @@ export function ChatSheet() {
       <Tooltip>
         <TooltipTrigger asChild>
           <SheetTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="Ask AI">
+            <Button
+              data-tour="ask-ai"
+              variant="ghost"
+              size="icon-sm"
+              aria-label="Ask AI"
+            >
               <Sparkles className="size-4" />
             </Button>
           </SheetTrigger>
@@ -100,7 +191,12 @@ export function ChatSheet() {
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-4 overflow-y-auto px-4 py-4">
+        {/* Message list */}
+        <div
+          ref={listRef}
+          onScroll={onListScroll}
+          className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+        >
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
               <Sparkles className="size-6 opacity-40" />
@@ -113,41 +209,27 @@ export function ChatSheet() {
           ) : (
             messages.map((message) => {
               const text = messageText(message);
-              const isUser = message.role === "user";
-              return (
-                <div
-                  key={message.id}
-                  className={cn(
-                    "flex",
-                    isUser ? "justify-end" : "justify-start",
-                  )}
-                >
-                  {isUser ? (
-                    <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-primary px-3.5 py-2 text-sm text-primary-foreground">
+              if (message.role === "user") {
+                return (
+                  <div key={message.id} className="flex justify-end">
+                    <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-primary px-4 py-2.5 text-sm text-primary-foreground">
                       {text}
                     </div>
-                  ) : (
-                    <div className="max-w-[90%] rounded-2xl bg-muted px-3.5 py-2 text-sm">
-                      {text ? (
-                        <MarkdownPreview
-                          content={text}
-                          className="prose-sm max-w-none [&>:first-child]:mt-0 [&>:last-child]:mb-0"
-                        />
-                      ) : null}
-                    </div>
-                  )}
+                  </div>
+                );
+              }
+              return text ? (
+                <div key={message.id} className="flex justify-start">
+                  <AssistantMessage text={text} />
                 </div>
-              );
+              ) : null;
             })
           )}
 
+          {/* Spinner + verb between send and the first streamed token. */}
           {status === "submitted" && (
-            <div className="flex justify-start">
-              <div className="flex gap-1 rounded-2xl bg-muted px-3.5 py-3">
-                <span className="size-1 animate-bounce rounded-full bg-current [animation-delay:-0.3s]" />
-                <span className="size-1 animate-bounce rounded-full bg-current [animation-delay:-0.15s]" />
-                <span className="size-1 animate-bounce rounded-full bg-current" />
-              </div>
+            <div className="flex justify-start px-1">
+              <ThinkingIndicator />
             </div>
           )}
 
@@ -180,6 +262,7 @@ export function ChatSheet() {
           )}
         </div>
 
+        {/* Quick action + composer */}
         <div className="border-t border-chrome-border">
           <div className="px-3 pt-3">
             <Button
@@ -203,6 +286,7 @@ export function ChatSheet() {
           >
             <div className="flex items-end gap-2">
               <textarea
+                ref={textareaRef}
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
                 onKeyDown={(e) => {
@@ -214,7 +298,7 @@ export function ChatSheet() {
                 rows={1}
                 placeholder="Ask anything…"
                 aria-label="Message"
-                className="max-h-32 min-h-9 flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="min-h-9 flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-ring"
               />
               {isBusy ? (
                 <Button
