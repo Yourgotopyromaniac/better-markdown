@@ -2,6 +2,7 @@ import React, { Suspense, useEffect } from "react";
 import { Route, Routes, useLocation } from "react-router";
 
 import { ErrorBoundary } from "@/lib/errorBoundary";
+import { MarkSpinner } from "@/components/ui/mark-spinner";
 import { RouteBuilder } from "./routeBuilder";
 
 const MainRouter: React.FC = () => {
@@ -38,7 +39,7 @@ export { MainRouter };
 
 const RouteFallback: React.FC = () => (
   <div className="flex h-screen items-center justify-center bg-background">
-    <div className="size-6 animate-spin rounded-full border-2 border-muted border-t-primary" />
+    <MarkSpinner className="size-10 text-primary" />
   </div>
 );
 

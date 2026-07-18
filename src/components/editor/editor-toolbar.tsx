@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/tooltip";
 import { ShareDialog } from "@/components/editor/share-dialog";
 import { RecentsMenu } from "@/components/editor/recents-menu";
+import { ChatSheet } from "@/components/chat/chat-sheet";
 import { useFileActions } from "@/components/files/file-actions";
 import { useEditorStore } from "@/store/editor-store";
 import { cn } from "@/lib/utils";
@@ -28,14 +29,15 @@ function FileNameInput() {
   const [draft, setDraft] = useState(fileName);
   const ref = useRef<HTMLInputElement>(null);
 
-  // Keep the local draft in sync when the document changes externally
-  // (share import, recents, upload, etc.).
   useEffect(() => setDraft(fileName), [fileName]);
 
   const commit = () => setFileName(draft);
 
   return (
-    <div data-tour="document-name" className="flex min-w-0 items-center gap-1.5">
+    <div
+      data-tour="document-name"
+      className="flex min-w-0 items-center gap-1.5"
+    >
       <FileText className="size-4 shrink-0 text-muted-foreground" />
       <input
         ref={ref}
@@ -122,9 +124,15 @@ export function EditorToolbar() {
     >
       <FileNameInput />
 
-      <div data-tour="toolbar-actions" className="ml-auto flex items-center gap-0.5">
+      <div
+        data-tour="toolbar-actions"
+        className="ml-auto flex items-center gap-0.5"
+      >
         <Stats />
-        <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
+        <Separator
+          orientation="vertical"
+          className="mx-1 hidden h-5 lg:block"
+        />
 
         {/* Sync scroll — only meaningful in the desktop split view. */}
         <Tooltip>
@@ -148,7 +156,10 @@ export function EditorToolbar() {
             {syncScroll ? "Sync scroll: on" : "Sync scroll: off"}
           </TooltipContent>
         </Tooltip>
-        <Separator orientation="vertical" className="mx-1 hidden h-5 lg:block" />
+        <Separator
+          orientation="vertical"
+          className="mx-1 hidden h-5 lg:block"
+        />
 
         <IconAction label="Open a Markdown file (Ctrl+O)" onClick={openFile}>
           <FolderOpen className="size-4" />
@@ -182,6 +193,10 @@ export function EditorToolbar() {
         >
           <Eraser className="size-4" />
         </IconAction>
+
+        <Separator orientation="vertical" className="mx-1 h-5" />
+
+        <ChatSheet />
       </div>
     </div>
   );
