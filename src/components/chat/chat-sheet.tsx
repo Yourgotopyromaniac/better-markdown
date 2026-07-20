@@ -74,14 +74,14 @@ function AssistantMessage({ text }: { text: string }) {
   };
 
   return (
-    <div className="flex flex-col items-start gap-1">
+    <div className="flex min-w-0 max-w-[90%] flex-col items-start gap-1">
       <div
         ref={contentRef}
-        className="max-w-[90%] rounded-2xl bg-muted px-4 py-3 text-sm"
+        className="min-w-0 max-w-full overflow-hidden rounded-2xl bg-muted px-4 py-3 text-sm"
       >
         <MarkdownPreview
           content={text}
-          className="prose-sm max-w-none [&>:first-child]:mt-0 [&>:last-child]:mb-0"
+          className="prose-sm max-w-none break-words [&>:first-child]:mt-0 [&>:last-child]:mb-0 [&_pre]:max-w-full [&_pre]:overflow-x-auto [&_table]:block [&_table]:overflow-x-auto"
         />
       </div>
       <button
@@ -178,7 +178,7 @@ export function ChatSheet() {
         <div
           ref={listRef}
           onScroll={onListScroll}
-          className="flex-1 space-y-4 overflow-y-auto px-4 py-4"
+          className="flex-1 space-y-4 overflow-y-auto overflow-x-hidden px-4 py-4"
         >
           {messages.length === 0 ? (
             <div className="flex h-full flex-col items-center justify-center gap-2 text-center text-sm text-muted-foreground">
@@ -194,15 +194,15 @@ export function ChatSheet() {
               const text = messageText(message);
               if (message.role === "user") {
                 return (
-                  <div key={message.id} className="flex justify-end">
-                    <div className="max-w-[85%] whitespace-pre-wrap rounded-2xl bg-primary px-4 py-2.5 text-sm text-primary-foreground">
+                  <div key={message.id} className="flex min-w-0 justify-end">
+                    <div className="min-w-0 max-w-[85%] whitespace-pre-wrap break-words rounded-2xl bg-primary px-4 py-2.5 text-sm text-primary-foreground">
                       {text}
                     </div>
                   </div>
                 );
               }
               return text ? (
-                <div key={message.id} className="flex justify-start">
+                <div key={message.id} className="flex min-w-0 justify-start">
                   <AssistantMessage text={text} />
                 </div>
               ) : null;
